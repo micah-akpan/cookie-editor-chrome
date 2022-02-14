@@ -1,10 +1,10 @@
-const cookieKey = document.querySelector('.cookie-key')
-const getCookieBtn = document.querySelector('.btn-get-cookie')
+const cookieKey = document.getElementById('tb-cookie-key')
+const getCookieBtn = document.getElementById('btn-get-cookie')
 
-const index = document.querySelector('.cookie-index')
-const newValue = document.querySelector('.cookie-value')
+const cookieIndex = document.getElementById('tb-cookie-index')
+const newCookieValue = document.getElementById('tb-cookie-value')
 
-const cookieCopyMsg = document.querySelector('.cookie-copy-msg')
+const cookieCopyMsg = document.getElementById('cookie-copy-msg')
 const cookieHostURL = document.getElementById('tb-cookie-host-url')
 
 const cookieURLSaveCheckbox = document.getElementById('cb-cookie-save')
@@ -14,7 +14,7 @@ getCookieBtn.addEventListener('click', getCookieValue)
 cookieURLSaveCheckbox.addEventListener('change', saveCookieHostURL)
 
 
-const getNewCookieElem = () => {
+function getNewCookieElem() {
   if (!navigator.clipboard) {
     const getCookieBtnText = document.createElement('p')
     getCookieBtnText.classList.add('text-new-cookie')
@@ -34,19 +34,16 @@ const getNewCookieElem = () => {
 async function getCookieValue() {
   const cookieHostURLValue = await chrome.storage.local.get(['cookieHostURL'])
 
-  if (!cookieHostURLValue.cookieHostURL.trim()) {
-    // TODO: handle this with HTML form validation?
-    throw new Error('Please provide a cookie host URL')
-  }
+  const sanitizedCookieHostURLValue = cookieHostURLValue.cookieHostURL.trim()
 
   try {
     const cookie = await chrome.cookies.get({
-      url: cookieHostURLValue.cookieHostURL.trim(),
+      url: sanitizedCookieHostURLValue,
       name: cookieKey.value
     })
 
-    const mutatedCookie = mutate(cookie.value, index.value, newValue.value)
-    const newCookieValueElem = newValue.insertAdjacentElement('afterend', getNewCookieElem())
+    const mutatedCookie = mutate(cookie.value, cookieIndex.value, newCookieValue.value)
+    const newCookieValueElem = newCookieValue.insertAdjacentElement('afterend', getNewCookieElem())
     newCookieValueElem.textContent = `${mutatedCookie}`
 
   } catch (error) {
@@ -61,6 +58,7 @@ function mutate(cookie, index, newValue) {
 /**
  * @description Copies the newly constructed cookie to Clipboard
  * @param {String} cookie
+ * @returns {Promise<boolean>} Returns true if copy operation was successful, false otherwise
  */
 async function copyCookieToClipboard(cookie) {
   if (cookie) {
@@ -73,6 +71,7 @@ async function copyCookieToClipboard(cookie) {
       cookieCopyMsg.innerHTML = '<strong>Copy Failed 😢.</strong>'
     }
   }
+  return false
 }
 
 async function saveCookieHostURL(e) {

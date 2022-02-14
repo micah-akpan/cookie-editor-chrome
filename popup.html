@@ -7,35 +7,55 @@
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <input
-      type="text"
-      id="tb-cookie-host-url"
-      placeholder="Cookie Host URL: https://www.example.com"
-    />
-    <label for="cb-cookie-save"
-      >Save URL for future use
-      <input type="checkbox" name="" id="cb-cookie-save" />
-    </label>
+    <form>
+      <input
+        type="text"
+        id="tb-cookie-host-url"
+        class="tb-cookie-host-url"
+        placeholder="Cookie Host URL: https://www.example.com"
+        pattern="https://.+"
+        required
+      />
 
-    <button id="btn-cookie-change-url" className="btn-cookie-change-url">
+      <label for="cb-cookie-save mb">
+        <input type="checkbox" id="cb-cookie-save" class="cb-cookie-save" />
+        Save URL for future use
+      </label>
+
+      <!-- <button
+      id="btn-cookie-change-url"
+      class="btn-cookie-change-url"
+    >
       Change Cookie Host URL
-    </button>
+    </button> -->
 
-    <!-- Click on save cookie for future use to save cookie for future use -->
-    <input
-      type="text"
-      name=""
-      id=""
-      class="cookie-key mb"
-      placeholder="Cookie Key"
-    />
+      <input
+        type="text"
+        id="tb-cookie-key"
+        class="tb-cookie-key mb"
+        placeholder="Cookie Key"
+      />
 
-    <input type="text" class="cookie-index mb" placeholder="Cookie index" />
-    <input type="text" class="cookie-value mb" placeholder="Cookie value" />
+      <input
+        type="number"
+        id="tb-cookie-index"
+        class="tb-cookie-index mb"
+        placeholder="Cookie index"
+      />
 
-    <p class="cookie-copy-msg hide-block"><strong>Copied!</strong></p>
+      <input
+        type="text"
+        id="tb-cookie-value"
+        class="tb-cookie-value mb"
+        placeholder="Cookie value"
+      />
 
-    <button class="btn-get-cookie">Get cookie</button>
+      <p id="cookie-copy-msg" class="cookie-copy-msg hide-block">
+        <strong>Copied!</strong>
+      </p>
+
+      <button type="submit" id="btn-get-cookie" class="btn-get-cookie">Get cookie</button>
+    </form>
     <script src="popup.js"></script>
   </body>
 </html>
