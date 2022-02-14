@@ -1,28 +1,31 @@
-const cookieKey = document.querySelector('.cookie-key')
-const getCookieBtn = document.querySelector('.btn-get-cookie')
+const cookieKey = document.getElementById('tb-cookie-key')
+const getCookieBtn = document.getElementById('btn-get-cookie')
 
-const index = document.querySelector('.cookie-index')
-const newValue = document.querySelector('.cookie-value')
+const cookieIndex = document.getElementById('tb-cookie-index')
+const newCookieValue = document.getElementById('tb-cookie-value')
 
-const cookieCopyMsg = document.querySelector('.cookie-copy-msg')
+const cookieCopyMsg = document.getElementById('cookie-copy-msg')
 const cookieHostURL = document.getElementById('tb-cookie-host-url')
 
 const cookieURLSaveCheckbox = document.getElementById('cb-cookie-save')
 
-getCookieBtn.addEventListener('click', getCookieValue)
+document.forms.item(0).addEventListener('submit', (e) => {
+  e.preventDefault()
+  getCookieValue()
+})
 
 cookieURLSaveCheckbox.addEventListener('change', saveCookieHostURL)
 
-
-const getNewCookieElem = () => {
+function getNewCookieElem() {
   if (!navigator.clipboard) {
-    const getCookieBtnText = document.createElement('p')
-    getCookieBtnText.classList.add('text-new-cookie')
+    const getCookieBtnText = document.getElementById('text-new-cookie')
+    getCookieBtnText.classList.add('show-block')
     return getCookieBtnText
   }
 
-  const newCookieBtn = document.createElement('button')
-  newCookieBtn.classList.add('btn-new-cookie')
+  const newCookieBtn = document.getElementById('btn-new-cookie')
+  newCookieBtn.classList.add('show-block')
+
   newCookieBtn.addEventListener('click', (e) => {
     copyCookieToClipboard(e.target.textContent.trim())
   })
@@ -34,19 +37,17 @@ const getNewCookieElem = () => {
 async function getCookieValue() {
   const cookieHostURLValue = await chrome.storage.local.get(['cookieHostURL'])
 
-  if (!cookieHostURLValue.cookieHostURL.trim()) {
-    // TODO: handle this with HTML form validation?
-    throw new Error('Please provide a cookie host URL')
-  }
+  const sanitizedCookieHostURLValue = cookieHostURLValue.cookieHostURL.trim()
 
   try {
     const cookie = await chrome.cookies.get({
-      url: cookieHostURLValue.cookieHostURL.trim(),
+      url: sanitizedCookieHostURLValue,
       name: cookieKey.value
     })
 
-    const mutatedCookie = mutate(cookie.value, index.value, newValue.value)
-    const newCookieValueElem = newValue.insertAdjacentElement('afterend', getNewCookieElem())
+    const mutatedCookie = mutate(cookie.value, cookieIndex.value, newCookieValue.value)
+
+    const newCookieValueElem = newCookieValue.insertAdjacentElement('afterend', getNewCookieElem())
     newCookieValueElem.textContent = `${mutatedCookie}`
 
   } catch (error) {
@@ -61,6 +62,7 @@ function mutate(cookie, index, newValue) {
 /**
  * @description Copies the newly constructed cookie to Clipboard
  * @param {String} cookie
+ * @returns {Promise<boolean>} Returns true if copy operation was successful, false otherwise
  */
 async function copyCookieToClipboard(cookie) {
   if (cookie) {
@@ -73,6 +75,7 @@ async function copyCookieToClipboard(cookie) {
       cookieCopyMsg.innerHTML = '<strong>Copy Failed 😢.</strong>'
     }
   }
+  return false
 }
 
 async function saveCookieHostURL(e) {
@@ -88,11 +91,6 @@ async function saveCookieHostURL(e) {
   }
 }
 
-// new features
-// user should be able to enter the domain
-// user should be able to save domain for future use
-// user should be able to change domain
-
 
 /**
  * flow
@@ -101,4 +99,8 @@ async function saveCookieHostURL(e) {
  *   when user clicks on this button, show the input field, and the checkbox again
  * else
  *  proceed with existing flow
+ * 
+ * 
+ * features:
+ *   - user should be able to change domain
  */

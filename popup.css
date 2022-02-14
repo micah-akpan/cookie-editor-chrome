@@ -10,11 +10,15 @@ input {
   outline: none;
 }
 
+input[type="checkbox"] {
+  width: auto;
+}
+
 .mb {
   margin-bottom: 4px;
 }
 
-button.btn-get-cookie {
+.btn-get-cookie {
   width: 200px;
   background: orange;
   color: #000;
