@@ -9,20 +9,23 @@ const cookieHostURL = document.getElementById('tb-cookie-host-url')
 
 const cookieURLSaveCheckbox = document.getElementById('cb-cookie-save')
 
-getCookieBtn.addEventListener('click', getCookieValue)
+document.forms.item(0).addEventListener('submit', (e) => {
+  e.preventDefault()
+  getCookieValue()
+})
 
 cookieURLSaveCheckbox.addEventListener('change', saveCookieHostURL)
 
-
 function getNewCookieElem() {
   if (!navigator.clipboard) {
-    const getCookieBtnText = document.createElement('p')
-    getCookieBtnText.classList.add('text-new-cookie')
+    const getCookieBtnText = document.getElementById('text-new-cookie')
+    getCookieBtnText.classList.add('show-block')
     return getCookieBtnText
   }
 
-  const newCookieBtn = document.createElement('button')
-  newCookieBtn.classList.add('btn-new-cookie')
+  const newCookieBtn = document.getElementById('btn-new-cookie')
+  newCookieBtn.classList.add('show-block')
+
   newCookieBtn.addEventListener('click', (e) => {
     copyCookieToClipboard(e.target.textContent.trim())
   })
@@ -43,6 +46,7 @@ async function getCookieValue() {
     })
 
     const mutatedCookie = mutate(cookie.value, cookieIndex.value, newCookieValue.value)
+
     const newCookieValueElem = newCookieValue.insertAdjacentElement('afterend', getNewCookieElem())
     newCookieValueElem.textContent = `${mutatedCookie}`
 
@@ -87,11 +91,6 @@ async function saveCookieHostURL(e) {
   }
 }
 
-// new features
-// user should be able to enter the domain
-// user should be able to save domain for future use
-// user should be able to change domain
-
 
 /**
  * flow
@@ -100,4 +99,8 @@ async function saveCookieHostURL(e) {
  *   when user clicks on this button, show the input field, and the checkbox again
  * else
  *  proceed with existing flow
+ * 
+ * 
+ * features:
+ *   - user should be able to change domain
  */

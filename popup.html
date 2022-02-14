@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <form>
+    <form id="form-edit-cookie">
       <input
         type="text"
         id="tb-cookie-host-url"
@@ -49,6 +49,10 @@
         class="tb-cookie-value mb"
         placeholder="Cookie value"
       />
+
+      <p id="text-new-cookie" class="text-new-cookie hide-block"></p>
+
+      <button type="button" id="btn-new-cookie" class="btn-new-cookie hide-block"></button>
 
       <p id="cookie-copy-msg" class="cookie-copy-msg hide-block">
         <strong>Copied!</strong>
