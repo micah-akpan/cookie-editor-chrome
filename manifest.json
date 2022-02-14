@@ -1,0 +1,11 @@
+{
+  "name": "Cookie Editor",
+  "description": "Cookie editor for the minimalist",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": ["storage", "activeTab", "cookies"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

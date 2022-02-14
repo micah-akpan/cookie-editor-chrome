@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <input
+      type="text"
+      id="tb-cookie-host-url"
+      placeholder="Cookie Host URL: https://www.example.com"
+    />
+    <label for="cb-cookie-save"
+      >Save URL for future use
+      <input type="checkbox" name="" id="cb-cookie-save" />
+    </label>
+
+    <button id="btn-cookie-change-url" className="btn-cookie-change-url">
+      Change Cookie Host URL
+    </button>
+
+    <!-- Click on save cookie for future use to save cookie for future use -->
+    <input
+      type="text"
+      name=""
+      id=""
+      class="cookie-key mb"
+      placeholder="Cookie Key"
+    />
+
+    <input type="text" class="cookie-index mb" placeholder="Cookie index" />
+    <input type="text" class="cookie-value mb" placeholder="Cookie value" />
+
+    <p class="cookie-copy-msg hide-block"><strong>Copied!</strong></p>
+
+    <button class="btn-get-cookie">Get cookie</button>
+    <script src="popup.js"></script>
+  </body>
+</html>
