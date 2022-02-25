@@ -9,12 +9,22 @@ const cookieHostURL = document.getElementById('tb-cookie-host-url')
 
 const cookieURLSaveCheckbox = document.getElementById('cb-cookie-save')
 
-document.forms.item(0).addEventListener('submit', (e) => {
+document.forms.item(0).addEventListener('submit', async (e) => {
   e.preventDefault()
-  getCookieValue()
+  const canSaveHostURL = cookieURLSaveCheckbox.checked
+  await saveCookieHostURL(canSaveHostURL)
+  await getCookieValue()
 })
 
-cookieURLSaveCheckbox.addEventListener('change', saveCookieHostURL)
+window.addEventListener('load', () => {
+  chrome.storage.local.get(['cookieHostURL']).then((v) => {
+    console.error('v: ', v.cookieHostURL)
+    if (v.cookieHostURL && v.cookieHostURL.trim()) {
+      cookieURLSaveCheckbox.setAttribute('checked', true)
+      cookieHostURL.value = v.cookieHostURL.trim()
+    }
+  })
+})
 
 function getNewCookieElem() {
   if (!navigator.clipboard) {
@@ -37,22 +47,37 @@ function getNewCookieElem() {
 async function getCookieValue() {
   const cookieHostURLValue = await chrome.storage.local.get(['cookieHostURL'])
 
-  const sanitizedCookieHostURLValue = cookieHostURLValue.cookieHostURL.trim()
+  let cookieToBeChanged = ''
 
-  try {
+  if (cookieHostURLValue.cookieHostURL) {
+    const sanitizedCookieHostURLValue = cookieHostURLValue.cookieHostURL.trim()
+
+    try {
+      const cookie = await chrome.cookies.get({
+        url: sanitizedCookieHostURLValue,
+        name: cookieKey.value
+      })
+
+      cookieToBeChanged = cookie.value
+  
+    } catch (error) {
+      // console.error('error: ', error)
+    }
+  } else {
+    // no stored cookie host URL, use the entered URL
     const cookie = await chrome.cookies.get({
-      url: sanitizedCookieHostURLValue,
+      url: cookieHostURL.value.trim(),
       name: cookieKey.value
     })
 
-    const mutatedCookie = mutate(cookie.value, cookieIndex.value, newCookieValue.value)
-
-    const newCookieValueElem = newCookieValue.insertAdjacentElement('afterend', getNewCookieElem())
-    newCookieValueElem.textContent = `${mutatedCookie}`
-
-  } catch (error) {
-    // console.error('error: ', error)
+    cookieToBeChanged = cookie.value
   }
+
+  const mutatedCookie = mutate(cookieToBeChanged, cookieIndex.value, newCookieValue.value)
+  
+  const newCookieValueElem = newCookieValue.insertAdjacentElement('afterend', getNewCookieElem())
+  newCookieValueElem.textContent = `${mutatedCookie}`
+
 }
 
 function mutate(cookie, index, newValue) {
@@ -78,29 +103,40 @@ async function copyCookieToClipboard(cookie) {
   return false
 }
 
-async function saveCookieHostURL(e) {
-  const canSave = e.target.checked
+async function saveCookieHostURL(canSaveHostURL) {
   const cookieHostURLValue = cookieHostURL.value.trim()
 
-  if (canSave) {
+  if (canSaveHostURL) {
     if (cookieHostURLValue) {
       await chrome.storage.local.set({ cookieHostURL: cookieHostURLValue })
     } else {
       throw new Error('Please provide a cookie host URL')
     }
+  } else {
+    const cookieHostURL = await getStoredCookieHostURL()
+    if (cookieHostURL) {
+      await chrome.storage.local.remove('cookieHostURL')
+      console.error('cookie deleted....')
+      console.error('nothin', await getStoredCookieHostURL())
+    }
   }
+}
+
+async function getStoredCookieHostURL() {
+  const cookieHostURLValue = await chrome.storage.local.get(['cookieHostURL'])
+  return cookieHostURLValue.cookieHostURL
 }
 
 
 /**
  * flow
  * user enters url, and click on save for future use
- * if this is turned on, display button with the title 'Change cookie url'
+ * if there's a saved url in store, keep 'save cookie checkbox' in checked
+ *   and pre-fill the url with url host input field with the existing cookie host url
+ *   and keep the field in disabled state
  *   when user clicks on this button, show the input field, and the checkbox again
  * else
  *  proceed with existing flow
- * 
- * 
  * features:
  *   - user should be able to change domain
  */
