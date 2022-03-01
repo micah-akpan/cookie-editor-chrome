@@ -5,27 +5,35 @@ const cookieIndex = document.getElementById('tb-cookie-index')
 const newCookieValue = document.getElementById('tb-cookie-value')
 
 const cookieCopyMsg = document.getElementById('cookie-copy-msg')
-const cookieHostURL = document.getElementById('tb-cookie-host-url')
+const cookieHostURLElem = document.getElementById('tb-cookie-host-url')
 
 const cookieURLSaveCheckbox = document.getElementById('cb-cookie-save')
+const cookieTextError = document.getElementById('text-cookie-error')
+
+const COOKIE_HOST_URL = 'cookieHostURL'
 
 document.forms.item(0).addEventListener('submit', async (e) => {
   e.preventDefault()
-  const canSaveHostURL = cookieURLSaveCheckbox.checked
-  await saveCookieHostURL(canSaveHostURL)
-  await getNewCookieValue()
+  cookieCopyMsg.textContent = ''
+  try {
+    const canSaveHostURL = cookieURLSaveCheckbox.checked
+    await saveOrClearCookieHostURL(canSaveHostURL)
+    await getNewCookieValue()
+  } catch (error) {
+    cookieTextError.innerHTML = error.message
+  }
 })
-
-const COOKIE_HOST_URL = 'cookieHostURL'
 
 window.addEventListener('load', async () => {
   try {
     const cookieHostURL = await chrome.storage.local.get([COOKIE_HOST_URL])
     if (cookieHostURL.cookieHostURL) {
       cookieURLSaveCheckbox.setAttribute('checked', true)
-      cookieHostURL.value = cookieHostURL.cookieHostURL
+      cookieHostURLElem.value = cookieHostURL.cookieHostURL
     }
-  } catch (error) {}
+  } catch (error) {
+    cookieTextError.innerHTML = error.message
+  }
 })
 
 function getNewCookieElem() {
@@ -52,6 +60,10 @@ async function getCookie(cookieHostURL, cookieName) {
     name: cookieName
   })
 
+  if (cookie === null) {
+    throw new Error(`There's probably no cookie with the name in the specified domain: ${cookieName}`)
+  }
+
   return cookie.value
 }
 
@@ -61,17 +73,14 @@ async function getNewCookieValue() {
 
   let cookieToBeChanged = ''
 
-  try {
-    if (cookieHostURLValue.cookieHostURL) {
-      const sanitizedCookieHostURLValue = cookieHostURLValue.cookieHostURL.trim()
-      const cookie = await getCookie(sanitizedCookieHostURLValue, cookieKey.value)
-      cookieToBeChanged = cookie
-    } else {
-      const cookie = await getCookie(cookieHostURL.value.trim(), cookieKey.value)
-      cookieToBeChanged = cookie
-    }
-  } catch (error) {
-    // console.error('error: ', error)
+  if (cookieHostURLValue.cookieHostURL) {
+    const sanitizedCookieHostURLValue = cookieHostURLValue.cookieHostURL.trim()
+    const cookie = await getCookie(sanitizedCookieHostURLValue, cookieKey.value)
+    cookieToBeChanged = cookie
+  } else {
+    // no stored cookie, use the one from the input field
+    const cookie = await getCookie(cookieHostURLElem.value.trim(), cookieKey.value)
+    cookieToBeChanged = cookie
   }
 
   const mutatedCookie = mutate(cookieToBeChanged, cookieIndex.value, newCookieValue.value)
@@ -104,7 +113,7 @@ async function copyCookieToClipboard(cookie) {
       cookieCopyMsg.classList.replace('hide-block', 'show-block')
       return true
     } catch (error) {
-      cookieCopyMsg.classList.add('copy-error')
+      cookieCopyMsg.classList.add('error')
       cookieCopyMsg.innerHTML = '<strong>Copy Failed 😢.</strong>'
     }
   }
@@ -117,8 +126,8 @@ async function copyCookieToClipboard(cookie) {
  * @param {boolean} canSaveHostURL
  * @returns {Promise<void>}
  */
-async function saveCookieHostURL(canSaveHostURL) {
-  const cookieHostURLValue = cookieHostURL.value.trim()
+async function saveOrClearCookieHostURL(canSaveHostURL) {
+  const cookieHostURLValue = cookieHostURLElem.value.trim()
 
   if (canSaveHostURL) {
     if (cookieHostURLValue) {
