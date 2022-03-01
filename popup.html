@@ -2,8 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
@@ -21,13 +19,6 @@
         <input type="checkbox" id="cb-cookie-save" class="cb-cookie-save mb" /> Save URL for future use
       </label>
 
-      <!-- <button
-      id="btn-cookie-change-url"
-      class="btn-cookie-change-url"
-    >
-      Change Cookie Host URL
-    </button> -->
-
       <input
         type="text"
         id="tb-cookie-key"
@@ -39,7 +30,7 @@
         type="number"
         id="tb-cookie-index"
         class="tb-cookie-index mb"
-        placeholder="Cookie index"
+        placeholder="Index of the Cookie value (Indices are 0-based)"
       />
 
       <input
@@ -57,8 +48,12 @@
         <strong>Copied!</strong>
       </p>
 
+      <p id="text-cookie-error" class="text-cookie-error error"></p>
+
       <button type="submit" id="btn-get-cookie" class="btn-get-cookie">Get cookie</button>
     </form>
     <script src="popup.js"></script>
   </body>
+
+    <!-- extension icons from: <a href="https://www.flaticon.com/free-icons/cookie" title="cookie icons">Cookie icons created by Freepik - Flaticon</a> -->
 </html>
