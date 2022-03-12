@@ -10,6 +10,8 @@ const cookieHostURLElem = document.getElementById('tb-cookie-host-url')
 const cookieURLSaveCheckbox = document.getElementById('cb-cookie-save')
 const cookieTextError = document.getElementById('text-cookie-error')
 
+const overwriteCookieCheckBox = document.getElementById('cb-cookie-overwrite-old')
+
 const COOKIE_HOST_URL = 'cookieHostURL'
 
 document.forms.item(0).addEventListener('submit', async (e) => {
@@ -18,7 +20,27 @@ document.forms.item(0).addEventListener('submit', async (e) => {
   try {
     const canSaveHostURL = cookieURLSaveCheckbox.checked
     await saveOrClearCookieHostURL(canSaveHostURL)
-    await getNewCookieValue()
+
+    const updatedCookie = await getNewCookieValue()
+    setUpdatedCookieValue(updatedCookie)
+
+    const cookieName = getCookieName()
+    const cookieHostURL = getCookieHostURL()
+
+    const cookie = await getCookie(cookieHostURL, cookieName)
+    const parsedCurrentCookie = JSON.parse(JSON.stringify(cookie))
+
+    const allowListOfCookiePropsObj = getAllowListOfCookieProps(parsedCurrentCookie)
+
+    // overwrite cookie if enabled
+    if (overwriteCookieCheckBox.checked) {
+      await chrome.cookies.set({
+          ...allowListOfCookiePropsObj,
+          url: cookieHostURL,
+          name: cookieName,
+          value: updatedCookie,
+      })
+    }
   } catch (error) {
     cookieTextError.innerHTML = error.message
   }
@@ -35,6 +57,13 @@ window.addEventListener('load', async () => {
     cookieTextError.innerHTML = error.message
   }
 })
+
+chrome.cookies.onChanged.addListener(
+  () => {
+    cookieCopyMsg.classList.add('show-block')
+    cookieCopyMsg.innerHTML = 'You now have the new cookie in store!'
+  }
+)
 
 function getNewCookieElem() {
   if (!navigator.clipboard) {
@@ -53,6 +82,17 @@ function getNewCookieElem() {
   return newCookieBtn
 }
 
+function getAllowListOfCookieProps(cookieObj) {
+  const allowPropsList = ['domain', 'expirationDate', 'httpOnly', 'name', 'path', 'sameSite', 'secure', 'storeId', 'url', 'value']
+
+  const allowPropsObj = {}
+  allowPropsList.forEach((item) => {
+    allowPropsObj[item] = cookieObj[item]
+  })
+
+  return allowPropsObj
+}
+ 
 
 async function getCookie(cookieHostURL, cookieName) {
   const cookie = await chrome.cookies.get({
@@ -64,7 +104,21 @@ async function getCookie(cookieHostURL, cookieName) {
     throw new Error(`There's probably no cookie with the name in the specified domain: ${cookieName}`)
   }
 
-  return cookie.value
+  return cookie
+}
+
+function getCookieName() {
+  return cookieKey.value
+}
+
+function getCookieHostURL() {
+  return cookieHostURLElem.value
+}
+
+
+function setUpdatedCookieValue(newCookie) {
+  const newCookieValueElem = newCookieValue.insertAdjacentElement('afterend', getNewCookieElem())
+  newCookieValueElem.textContent = newCookie
 }
 
 
@@ -76,17 +130,16 @@ async function getNewCookieValue() {
   if (cookieHostURLValue.cookieHostURL) {
     const sanitizedCookieHostURLValue = cookieHostURLValue.cookieHostURL.trim()
     const cookie = await getCookie(sanitizedCookieHostURLValue, cookieKey.value)
-    cookieToBeChanged = cookie
+    cookieToBeChanged = cookie.value
   } else {
     // no stored cookie, use the one from the input field
     const cookie = await getCookie(cookieHostURLElem.value.trim(), cookieKey.value)
-    cookieToBeChanged = cookie
+    cookieToBeChanged = cookie.value
   }
 
   const mutatedCookie = mutate(cookieToBeChanged, cookieIndex.value, newCookieValue.value)
 
-  const newCookieValueElem = newCookieValue.insertAdjacentElement('afterend', getNewCookieElem())
-  newCookieValueElem.textContent = `${mutatedCookie}`
+  return mutatedCookie
 
 }
 
@@ -111,6 +164,7 @@ async function copyCookieToClipboard(cookie) {
     try {
       await navigator.clipboard.writeText(cookie)
       cookieCopyMsg.classList.replace('hide-block', 'show-block')
+      cookieCopyMsg.innerHTML = '<strong>Copied!</strong>'
       return true
     } catch (error) {
       cookieCopyMsg.classList.add('error')
