@@ -1,7 +1,7 @@
 {
   "name": "Cookie Editor",
-  "description": "Cookie editor for the minimalist",
-  "version": "1.0",
+  "description": "Reduces the need to use the browser devTools to edit, copy and save edited cookies.",
+  "version": "0.0.1",
   "manifest_version": 3,
   "permissions": ["storage", "activeTab", "cookies"],
   "host_permissions": ["<all_urls>"],
