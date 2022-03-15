@@ -14,7 +14,7 @@ input[type="checkbox"] {
   width: auto;
 }
 
-label[for="cb-cookie-save"] {
+label {
   margin-bottom: 4px;
   display: block;
 }
